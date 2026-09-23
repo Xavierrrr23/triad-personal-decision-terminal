@@ -8,7 +8,7 @@ const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 function unitState(unit,state,label){unit.dataset.state=state;const text=document.createElement('span');text.textContent=label;unit.querySelector('.vote').replaceChildren(text);}
 const stampText={standby:'STANDBY',thinking:'DELIBERATING',yes:'APPROVED',no:'REJECTED',void:'NO IDEA',error:'INTERRUPTED'};
-const entryCopy={emotion:{stamp:'A FEELING',phase:'EMOTION FOUND'},multiple:{stamp:'SPLIT IDEAS',phase:'MULTIPLE IDEAS'},fact:{stamp:'NOT A VOTE',phase:'NOT A VOTE'},self_worth:{stamp:'NOT A VOTE',phase:'NOT A VOTE'},crisis:{stamp:'CARE FIRST',phase:'CARE FIRST'},unclear:{stamp:'NO IDEA',phase:'NO IDEA FOUND'}};
+const entryCopy={emotion:{stamp:'A FEELING',phase:'EMOTION FOUND'},multiple:{stamp:'SPLIT IDEAS',phase:'MULTIPLE IDEAS'},fact:{stamp:'NOT A VOTE',phase:'NOT A VOTE'},self_worth:{stamp:'NOT A VOTE',phase:'NOT A VOTE'},crisis:{stamp:'CARE FIRST',phase:'CARE FIRST'},violence:{stamp:'NO VIOLENCE',phase:'NO VIOLENCE'},unclear:{stamp:'NO IDEA',phase:'NO IDEA FOUND'}};
 function result(state,title,detail,symbol='—'){$('#verdict').dataset.state=state;$('#result-title').textContent=title;$('#result-detail').textContent=detail;$('#result-symbol').textContent=symbol;$('#verdict-stamp').textContent=stampText[state]||'';$('#verdict').classList.remove('care-mode');}
 function standby(){units.forEach(u=>unitState(u,'standby','待命'));result('standby','等待议案','三位就绪，等待你的一个念头。');$('#phase').textContent='AWAITING INPUT';completed=false;}
 input.addEventListener('input',()=>{$('#count').textContent=`${input.value.length} / 300`;$('.input-shell').classList.toggle('has-text',input.value.length>0);if(completed)standby();});
