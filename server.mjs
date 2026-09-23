@@ -19,6 +19,18 @@ async function fresh() {
   if (rm !== rolesMtime) { rolesMtime = rm; roles = JSON.parse(readFileSync(rolesPath, 'utf8')); }
   return { interpret: decision.interpret, screening: decision.screening, roles };
 }
+// 组装角色问题:common.preamble 注入到各角色指令前;preamble:"own" 的角色自带完整开场白。
+function buildQuestions(roles) {
+  const common = roles.common?.preamble ?? [];
+  const preamble = (Array.isArray(common) ? common : [common]).filter(Boolean).join('\n');
+  const out = {};
+  for (const [id, q] of Object.entries(roles.questions ?? {})) {
+    const own = (Array.isArray(q.instructions) ? q.instructions : [q.instructions]).filter(Boolean).join('\n');
+    out[id] = { ...q, instructions: (q.preamble === 'own' || !preamble ? '' : preamble + '\n') + own };
+    delete out[id].preamble;
+  }
+  return out;
+}
 function envFile(path) {
   try { return Object.fromEntries(readFileSync(path, 'utf8').split(/\r?\n/).filter(l => /^[A-Z_]+=/.test(l)).map(l => { const i=l.indexOf('='); return [l.slice(0,i), l.slice(i+1).trim().replace(/^(['"])(.*)\1$/, '$2')]; })); } catch { return {}; }
 }
@@ -72,7 +84,7 @@ const server = http.createServer(async (req,res) => {
       const { roles: hotRoles, screening: hotScreening } = await fresh();
       const upstream=await fetch('https://api.typesafe.ai/v1/systemone',{
         method:'POST', headers:{'Content-Type':'application/json',Authorization:`Bearer ${key}`},
-        body:JSON.stringify({model:hotRoles.model,state:question,questions:{...hotRoles.questions,...hotScreening}}),
+        body:JSON.stringify({model:hotRoles.model,state:question,questions:{...buildQuestions(hotRoles),...hotScreening}}),
         signal:AbortSignal.timeout(20000), redirect:'error',
       });
       if (!upstream.ok) return send(upstream.status===429?429:502,{message:upstream.status===429?'判断服务繁忙，请稍后重试。':'判断服务暂时无法连接，请稍后重试。'});
