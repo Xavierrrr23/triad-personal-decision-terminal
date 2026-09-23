@@ -8,6 +8,7 @@ const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 function unitState(unit,state,label){unit.dataset.state=state;const text=document.createElement('span');text.textContent=label;unit.querySelector('.vote').replaceChildren(text);}
 const stampText={standby:'STANDBY',thinking:'DELIBERATING',yes:'APPROVED',no:'REJECTED',void:'NO IDEA',error:'INTERRUPTED'};
+const entryCopy={emotion:{stamp:'A FEELING',phase:'EMOTION FOUND'},multiple:{stamp:'SPLIT IDEAS',phase:'MULTIPLE IDEAS'},fact:{stamp:'NOT A VOTE',phase:'NOT A VOTE'},self_worth:{stamp:'NOT A VOTE',phase:'NOT A VOTE'},crisis:{stamp:'CARE FIRST',phase:'CARE FIRST'},unclear:{stamp:'NO IDEA',phase:'NO IDEA FOUND'}};
 function result(state,title,detail,symbol='—'){$('#verdict').dataset.state=state;$('#result-title').textContent=title;$('#result-detail').textContent=detail;$('#result-symbol').textContent=symbol;$('#verdict-stamp').textContent=stampText[state]||'';$('#verdict').classList.remove('care-mode');}
 function standby(){units.forEach(u=>unitState(u,'standby','待命'));result('standby','等待议案','三位就绪，等待你的一个念头。');$('#phase').textContent='AWAITING INPUT';completed=false;}
 input.addEventListener('input',()=>{$('#count').textContent=`${input.value.length} / 300`;$('.input-shell').classList.toggle('has-text',input.value.length>0);if(completed)standby();});
@@ -29,10 +30,12 @@ form.addEventListener('submit',async e=>{
   if(data.status==='invalid'||data.status==='care'){
     if(!reduced())await sleep(Math.max(0,650-(performance.now()-started)));
     for(const unit of units){unitState(unit,'void','未表决');if(!reduced())await sleep(260);}
-    result('void',data.status==='care'?'先照顾好你':'议案尚未成立',data.message);
-    $('#verdict-stamp').textContent=data.status==='care'?'CARE FIRST':'NO IDEA';
-    $('#verdict').classList.toggle('care-mode',data.status==='care');
-    $('#phase').textContent=data.status==='care'?'CARE FIRST':'NO IDEA FOUND';return;
+    const isCare=data.status==='care';
+    const copy=entryCopy[data.category]||{};
+    result('void',data.title||(isCare?'先照顾好你':'议案尚未成立'),data.message);
+    $('#verdict-stamp').textContent=copy.stamp||(isCare?'CARE FIRST':'NO IDEA');
+    $('#verdict').classList.toggle('care-mode',isCare);
+    $('#phase').textContent=copy.phase||(isCare?'CARE FIRST':'NO IDEA FOUND');return;
   }
   if(data.status!=='decided'||!Array.isArray(data.votes)||data.votes.length!==3||!units.every(u=>typeof data.votes.find(v=>v.id===u.dataset.role)?.yes==='boolean')||data.yes!==data.votes.filter(v=>v.yes).length||data.passed!==(data.yes>=2))throw new Error('Invalid result');
   if(!reduced())await sleep(Math.max(0,650-(performance.now()-started)));
