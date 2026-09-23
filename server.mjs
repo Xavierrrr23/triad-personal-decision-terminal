@@ -1,17 +1,29 @@
 import http from 'node:http';
-import { readFileSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { networkInterfaces } from 'node:os';
-import { interpret, screening } from './decision.mjs';
 
 const root = dirname(fileURLToPath(import.meta.url));
+// decision.mjs 与 roles.json 每次请求按 mtime 热重载:改完文件立即生效,无需重启
+const decisionPath = join(root, 'decision.mjs');
+const rolesPath = join(root, 'roles.json');
+let decision = await import('./decision.mjs');
+let decisionMtime = statSync(decisionPath).mtimeMs;
+let roles = null;
+let rolesMtime = 0;
+async function fresh() {
+  const dm = statSync(decisionPath).mtimeMs;
+  if (dm !== decisionMtime) { decisionMtime = dm; decision = await import(`${decisionPath}?t=${dm}`); }
+  const rm = statSync(rolesPath).mtimeMs;
+  if (rm !== rolesMtime) { rolesMtime = rm; roles = JSON.parse(readFileSync(rolesPath, 'utf8')); }
+  return { interpret: decision.interpret, screening: decision.screening, roles };
+}
 function envFile(path) {
   try { return Object.fromEntries(readFileSync(path, 'utf8').split(/\r?\n/).filter(l => /^[A-Z_]+=/.test(l)).map(l => { const i=l.indexOf('='); return [l.slice(0,i), l.slice(i+1).trim().replace(/^(['"])(.*)\1$/, '$2')]; })); } catch { return {}; }
 }
 const cfg = { ...envFile(join(root, '.env.local')), ...process.env };
 const key = cfg.TYPESAFE_API_KEY || envFile(cfg.TYPESAFE_KEY_FILE || '').TYPESAFE_API_KEY;
-const roles = JSON.parse(readFileSync(join(root, 'roles.json'), 'utf8'));
 const port = Number(cfg.PORT || 4317);
 const assets = new Map([
   ['/', ['index.html','text/html; charset=utf-8']],
@@ -57,12 +69,14 @@ const server = http.createServer(async (req,res) => {
     if (!question || question.length>300) return send(400,{message:'请输入 1～300 字的议案。'});
     requests.set(address,[...recent,now]); concurrent++;
     try {
+      const { roles: hotRoles, screening: hotScreening } = await fresh();
       const upstream=await fetch('https://api.typesafe.ai/v1/systemone',{
         method:'POST', headers:{'Content-Type':'application/json',Authorization:`Bearer ${key}`},
-        body:JSON.stringify({model:roles.model,state:question,questions:{...roles.questions,...screening}}),
+        body:JSON.stringify({model:hotRoles.model,state:question,questions:{...hotRoles.questions,...hotScreening}}),
         signal:AbortSignal.timeout(20000), redirect:'error',
       });
       if (!upstream.ok) return send(upstream.status===429?429:502,{message:upstream.status===429?'判断服务繁忙，请稍后重试。':'判断服务暂时无法连接，请稍后重试。'});
+      const { interpret } = await fresh();
       return send(200,interpret(await upstream.json()));
     } finally { concurrent--; }
   } catch { if (!res.headersSent) return send(502,{message:'本次连接中断，未生成裁决。请重试。'}); }
