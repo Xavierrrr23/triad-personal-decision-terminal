@@ -31,6 +31,15 @@ function buildQuestions(roles) {
   }
   return out;
 }
+// 提交议案时附加的本地时间背景,供角色评估现实得失与安全风险。
+const WEEK = ['周日','周一','周二','周三','周四','周五','周六'];
+function timeContext() {
+  const d = new Date();
+  const h = d.getHours();
+  const period = h < 5 ? '深夜' : h < 12 ? '上午' : h < 18 ? '下午' : h < 23 ? '晚上' : '深夜';
+  const pad = n => String(n).padStart(2, '0');
+  return `系统补充(由终端实时提供,非用户文本):提交议案时的本地时间为 ${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 ${WEEK[d.getDay()]} ${pad(h)}:${pad(d.getMinutes())}(${period})。评估现实得失与安全风险时可把它作为背景;它不改变表决对象本身。`;
+}
 function envFile(path) {
   try { return Object.fromEntries(readFileSync(path, 'utf8').split(/\r?\n/).filter(l => /^[A-Z_]+=/.test(l)).map(l => { const i=l.indexOf('='); return [l.slice(0,i), l.slice(i+1).trim().replace(/^(['"])(.*)\1$/, '$2')]; })); } catch { return {}; }
 }
@@ -72,10 +81,10 @@ const server = http.createServer(async (req,res) => {
   const now=Date.now();
   for (const [ip, times] of requests) { const active=times.filter(t=>now-t<60000); if (!active.length) requests.delete(ip); else requests.set(ip,active); }
   const recent=requests.get(address)||[];
-  if (recent.length>=12 || concurrent>=3) return send(429,{message:'议案较多，请稍等片刻再提交。'});
+  if (recent.length>=12 || concurrent>=3) return send(429,{message:'终端繁忙，请稍后提交。'});
   let text='';
   try {
-    for await (const chunk of req) { text+=chunk; if (Buffer.byteLength(text)>4096) return send(413,{message:'议案太长，请控制在 300 字以内。'}); }
+    for await (const chunk of req) { text+=chunk; if (Buffer.byteLength(text)>4096) return send(413,{message:'议案超出长度限制，请控制在 300 字以内。'}); }
     let parsed; try { parsed=JSON.parse(text); } catch { return send(400,{message:'请求格式有误，请重新提交。'}); }
     const question=typeof parsed.question==='string' ? parsed.question.trim() : '';
     if (!question || question.length>300) return send(400,{message:'请输入 1～300 字的议案。'});
@@ -84,14 +93,14 @@ const server = http.createServer(async (req,res) => {
       const { roles: hotRoles, screening: hotScreening } = await fresh();
       const upstream=await fetch('https://api.typesafe.ai/v1/systemone',{
         method:'POST', headers:{'Content-Type':'application/json',Authorization:`Bearer ${key}`},
-        body:JSON.stringify({model:hotRoles.model,state:question,questions:{...buildQuestions(hotRoles),...hotScreening}}),
+        body:JSON.stringify({model:hotRoles.model,state:`${question}\n${timeContext()}`,questions:{...buildQuestions(hotRoles),...hotScreening}}),
         signal:AbortSignal.timeout(20000), redirect:'error',
       });
-      if (!upstream.ok) return send(upstream.status===429?429:502,{message:upstream.status===429?'判断服务繁忙，请稍后重试。':'判断服务暂时无法连接，请稍后重试。'});
+      if (!upstream.ok) return send(upstream.status===429?429:502,{message:upstream.status===429?'判断服务繁忙，请稍后重试。':'暂时无法连接判断服务，请稍后重试。'});
       const { interpret } = await fresh();
       return send(200,interpret(await upstream.json()));
     } finally { concurrent--; }
-  } catch { if (!res.headersSent) return send(502,{message:'本次连接中断，未生成裁决。请重试。'}); }
+  } catch { if (!res.headersSent) return send(502,{message:'连接中断，决议未完成。请重新提交。'}); }
 });
 server.requestTimeout=30000;
 server.on('error',error=>{console.error(error.code==='EADDRINUSE'?'端口已被使用。已有终端可能正在运行：http://localhost:'+port:'终端启动失败：'+error.code);process.exit(1);});
