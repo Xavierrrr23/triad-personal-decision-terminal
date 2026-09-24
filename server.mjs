@@ -107,7 +107,7 @@ const server = http.createServer(async (req,res) => {
   try { url=new URL(req.url,'http://localhost'); } catch { return send(400,{message:'请求无效。'}); }
   const pathname=url.pathname;
   const address=req.socket.remoteAddress||'unknown';
-  if (req.method === 'GET' && pathname === '/api/health') { const quota=quotaFor(address); return send(200,{ configured:Boolean(key), version:'0.2', publicDailyLimit:quota.limit, publicRemaining:quota.remaining }); }
+  if (req.method === 'GET' && pathname === '/api/health') { const quota=quotaFor(address); const { roles: hotRoles } = await fresh(); return send(200,{ configured:Boolean(key), version:hotRoles?.version || '0.2', publicDailyLimit:quota.limit, publicRemaining:quota.remaining }); }
   if (req.method === 'GET' && pathname === '/api/history') {
     const session=url.searchParams.get('session')||'';
     if (!validHistorySession(session)) return send(400,{message:'历史终端标识无效。'});
