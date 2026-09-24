@@ -97,6 +97,17 @@ function consumePublicQuota(address) {
   publicUsage.set(address,{day:localDay(),used:quota.limit-quota.remaining+1});
   return { limit:quota.limit, remaining:quota.remaining-1, allowed:true };
 }
+// 反代信任:仅在 TRUST_PROXY=1 且服务只监听内网时开启,否则任何直连用户可伪造 X-Forwarded-For 绕过配额。
+function clientAddress(req) {
+  if (cfg.TRUST_PROXY) {
+    const xff = req.headers['x-forwarded-for'];
+    if (typeof xff === 'string' && xff) {
+      const first = xff.split(',')[0].trim();
+      if (/^[0-9a-fA-F:.]+$/.test(first)) return first;
+    }
+  }
+  return req.socket.remoteAddress || 'unknown';
+}
 const server = http.createServer(async (req,res) => {
   res.setHeader('X-Content-Type-Options','nosniff');
   res.setHeader('Referrer-Policy','no-referrer');
@@ -106,7 +117,7 @@ const server = http.createServer(async (req,res) => {
   let url;
   try { url=new URL(req.url,'http://localhost'); } catch { return send(400,{message:'请求无效。'}); }
   const pathname=url.pathname;
-  const address=req.socket.remoteAddress||'unknown';
+  const address=clientAddress(req);
   if (req.method === 'GET' && pathname === '/api/health') { const quota=quotaFor(address); const { roles: hotRoles } = await fresh(); return send(200,{ configured:Boolean(key), version:hotRoles?.version || '0.2', publicDailyLimit:quota.limit, publicRemaining:quota.remaining }); }
   if (req.method === 'GET' && pathname === '/api/history') {
     const session=url.searchParams.get('session')||'';
@@ -167,6 +178,7 @@ const server = http.createServer(async (req,res) => {
 server.requestTimeout=30000;
 server.on('error',error=>{console.error(error.code==='EADDRINUSE'?'端口已被使用。已有终端可能正在运行：http://localhost:'+port:'终端启动失败：'+error.code);process.exit(1);});
 server.listen(port,cfg.HOST||'0.0.0.0',()=>{
+  if (cfg.TRUST_PROXY && (cfg.HOST||'0.0.0.0')==='0.0.0.0') console.log('⚠ 已启用 TRUST_PROXY 但监听所有网卡:请设 HOST=127.0.0.1,否则配额可被伪造头绕过。');
   console.log(`TRIAD 已启动：http://localhost:${port}`);
   for(const interfaces of Object.values(networkInterfaces())) for(const n of interfaces||[]) if(n.family==='IPv4'&&!n.internal) console.log(`同一 Wi-Fi 手机访问：http://${n.address}:${port}`);
   console.log(key?'Jev 密钥已配置。按 Ctrl+C 停止。':'请先配置 TYPESAFE_API_KEY 或 TYPESAFE_KEY_FILE。');

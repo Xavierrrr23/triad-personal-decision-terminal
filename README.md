@@ -24,7 +24,7 @@
 
 用户输入会发送到 TypeSafe 供判断。每个有效提交的议案会追加保存到本机 `data/question-history.txt`，用于点击 TRIAD 标题后查看当前浏览器会话的记录；记录包含提交时间、会话标识和议案正文，不包含 Key 或模型原始返回值。该目录已由 git 忽略，不会进入仓库。内存中仅保留短时限流时间戳。未引入第三方字体、统计脚本或追踪资源。界面使用随项目携带的本地字体子集 `public/eva-ming-sc-subset-v2.woff2`（Eva Ming SC，覆盖界面文字与 GB2312 一、二级字库共 6763 字）。如需重建：重新获取原始字体 Eva Ming SC 后，`pip install fonttools brotli` 并用 `pyftsubset` 按根目录的 `subset-chars.txt`、`common-chars.txt`、`common-chars-2.txt` 字符清单子集化，产物改名带版本号以避开不可变缓存。
 
-当前服务绑定局域网以便手机体验；配有基本的请求大小检查、同源检查和限流。公开发布前需配置 HTTPS、平台级限流与用量控制。无需数据库。
+当前服务默认绑定所有网卡以便手机体验；配有基本的请求大小检查、同源检查和限流。线上部署(HTTPS、Nginx 反代、PM2 守护、Let's Encrypt 自动续期、每 IP 每日 23 次公共配额)见 `deploy/DEPLOY.md`。无需数据库。
 
 ## 文件
 
