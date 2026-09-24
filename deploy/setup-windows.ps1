@@ -24,10 +24,23 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 Write-Step '1/8 Install Node.js LTS (if missing)'
 $NodePath = "C:\Program Files\nodejs\node.exe"
 if (-not (Test-Path $NodePath)) {
-  Write-Host 'Node not found. Downloading latest LTS (~30MB)...'
-  $lts = (Invoke-RestMethod -UseBasicParsing "https://nodejs.org/dist/index.json" | Where-Object { $_.lts } | Select-Object -First 1).version
-  Invoke-WebRequest -UseBasicParsing "https://nodejs.org/dist/$lts/node-$lts-x64.msi" -OutFile "$env:TEMP\node.msi"
-  Start-Process msiexec -ArgumentList '/i', "$env:TEMP\node.msi", '/qn' -Wait
+  Write-Host 'Node not found. Downloading v24.21.0 LTS (~30MB) from a mirror...'
+  # Try official first, fall back to npmmirror (fast from mainland China).
+  $NodeMsi = "$env:TEMP\node.msi"
+  $urls = @(
+    "https://nodejs.org/dist/v24.21.0/node-v24.21.0-x64.msi",
+    "https://registry.npmmirror.com/-/binary/node/v24.21.0/node-v24.21.0-x64.msi"
+  )
+  $ok = $false
+  foreach ($u in $urls) {
+    try {
+      Write-Host "Trying: $u"
+      Invoke-WebRequest -UseBasicParsing $u -OutFile $NodeMsi
+      if ((Get-Item $NodeMsi).Length -gt 10MB) { $ok = $true; break }
+    } catch { Write-Host "  failed: $($_.Exception.Message)" }
+  }
+  if (-not $ok) { Write-Host '[X] Node download failed from all mirrors.' -ForegroundColor Red; exit 1 }
+  Start-Process msiexec -ArgumentList '/i', $NodeMsi, '/qn' -Wait
 }
 $env:Path = [Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [Environment]::GetEnvironmentVariable('Path','User')
 node --version
