@@ -13,12 +13,25 @@
   <script type="module" src="/app.js"></script>
 </head>
 <body>
-  <main class="terminal">
+  <main class="terminal" data-boot="waking" aria-busy="true">
     <div class="screen-fx" aria-hidden="true"><i class="sweep"></i></div>
-    <div class="hardware-top"><span>PERSONAL TERMINAL / 001</span><span class="live-indicator"><i></i><span id="connection">正在连接</span></span></div>
+    <section class="boot-sequence" id="boot-sequence" aria-hidden="true">
+      <div class="boot-sequence__frame">
+        <span class="boot-sequence__eyebrow">TRIAD / PERSONAL TERMINAL</span>
+        <strong class="boot-sequence__title">SYSTEM WAKING</strong>
+        <div class="boot-sequence__progress" aria-hidden="true"><i></i></div>
+        <p class="boot-sequence__status" id="boot-status">正在唤醒协同智能</p>
+        <ol class="boot-sequence__checks">
+          <li data-role="rational"><span>01</span><b>RATIONAL</b><em>等待</em></li>
+          <li data-role="guardian"><span>02</span><b>GUARDIAN</b><em>等待</em></li>
+          <li data-role="self"><span>03</span><b>SELF</b><em>等待</em></li>
+        </ol>
+      </div>
+    </section>
+    <div class="hardware-top"><span>PERSONAL TERMINAL / 001</span><button class="terminal-access live-indicator" id="terminal-access" type="button" aria-haspopup="dialog" aria-controls="terminal-dialog"><i></i><span id="connection">正在连接</span><span class="terminal-quota" id="connection-quota"></span></button></div>
     <header class="masthead">
-      <div class="wordmark">TRIAD<span class="cursor-block" aria-hidden="true"></span></div>
-      <div class="product-name"><span>超高智能</span><h1>个人即时决策系统</h1></div>
+      <button class="wordmark history-trigger" id="history-trigger" type="button" aria-haspopup="dialog" aria-controls="history-dialog" aria-label="查看议案记录">TRIAD<span class="cursor-block" aria-hidden="true"></span></button>
+      <div class="product-name"><span>协同智能</span><h1>个人即时决策系统</h1></div>
     </header>
     <div class="subhead"><span>三相决议 <b>／</b> 留给此刻的你</span><time id="clock">--:--:--</time></div>
 
@@ -61,5 +74,25 @@
     <div class="bottom-line"><span>DESIGN BY XAVIER · POWERED BY JEV</span><span>THINK × 3 &nbsp; / &nbsp; DECIDE × 1</span></div>
   </main>
   <div class="outside-note" aria-hidden="true">A LITTLE CERTAINTY IN AN UNCERTAIN WORLD.</div>
+  <dialog class="terminal-dialog" id="terminal-dialog" aria-labelledby="terminal-dialog-title">
+    <div class="terminal-dialog__frame">
+      <div class="terminal-dialog__header"><div><span class="terminal-dialog__eyebrow">TERMINAL ACCESS</span><h2 id="terminal-dialog-title">私人终端</h2></div><button id="terminal-dialog-close" type="button" aria-label="关闭终端设置">×</button></div>
+      <p class="terminal-dialog__state" id="terminal-dialog-state">正在检查公共终端。</p>
+      <form id="private-key-form" novalidate>
+        <div class="terminal-dialog__key-label"><label for="private-key">输入你的 TypeSafe Key</label><a href="https://typesafe.ai" target="_blank" rel="noopener noreferrer">获取 Key <span aria-hidden="true">↗</span></a></div>
+        <input id="private-key" name="private-key" type="password" inputmode="text" autocomplete="off" spellcheck="false" placeholder="粘贴你的 Key">
+        <p class="terminal-dialog__hint">仅保留在当前浏览器会话中，用于你的这一次连接。</p>
+        <p class="terminal-dialog__message" id="private-key-message" aria-live="polite"></p>
+        <div class="terminal-dialog__actions"><button class="terminal-dialog__save" type="submit">启用私人终端 <span aria-hidden="true">↗</span></button><button class="terminal-dialog__remove" id="private-key-remove" type="button" hidden>移除私人 Key</button></div>
+      </form>
+    </div>
+  </dialog>
+  <dialog class="terminal-dialog terminal-dialog--history" id="history-dialog" aria-labelledby="history-dialog-title">
+    <div class="terminal-dialog__frame">
+      <div class="terminal-dialog__header"><div><span class="terminal-dialog__eyebrow">TRIAD / QUESTION LOG</span><h2 id="history-dialog-title">议案记录</h2></div><button id="history-dialog-close" type="button" aria-label="关闭议案记录">×</button></div>
+      <p class="history-dialog__hint">本浏览器会话提交过的议案。记录保存在终端服务器的文本文件中。</p>
+      <ol class="history-list" id="history-list" aria-live="polite"><li class="history-list__status">正在读取记录…</li></ol>
+    </div>
+  </dialog>
 </body>
 </html>

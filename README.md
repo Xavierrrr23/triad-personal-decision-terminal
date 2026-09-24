@@ -22,7 +22,7 @@
 
 ## 隐私与部署范围
 
-用户输入会发送到 TypeSafe 供判断。本项目不保存议案历史，不记录输入或原始返回值；内存中仅保留短时限流时间戳。未引入第三方字体、统计脚本或追踪资源。界面使用随项目携带的本地字体子集 `public/eva-ming-sc-subset-v2.woff2`（Eva Ming SC，覆盖界面文字与 GB2312 一、二级字库共 6763 字）。如需重建：重新获取原始字体 Eva Ming SC 后，`pip install fonttools brotli` 并用 `pyftsubset` 按根目录的 `subset-chars.txt`、`common-chars.txt`、`common-chars-2.txt` 字符清单子集化，产物改名带版本号以避开不可变缓存。
+用户输入会发送到 TypeSafe 供判断。每个有效提交的议案会追加保存到本机 `data/question-history.txt`，用于点击 TRIAD 标题后查看当前浏览器会话的记录；记录包含提交时间、会话标识和议案正文，不包含 Key 或模型原始返回值。该目录已由 git 忽略，不会进入仓库。内存中仅保留短时限流时间戳。未引入第三方字体、统计脚本或追踪资源。界面使用随项目携带的本地字体子集 `public/eva-ming-sc-subset-v2.woff2`（Eva Ming SC，覆盖界面文字与 GB2312 一、二级字库共 6763 字）。如需重建：重新获取原始字体 Eva Ming SC 后，`pip install fonttools brotli` 并用 `pyftsubset` 按根目录的 `subset-chars.txt`、`common-chars.txt`、`common-chars-2.txt` 字符清单子集化，产物改名带版本号以避开不可变缓存。
 
 当前服务绑定局域网以便手机体验；配有基本的请求大小检查、同源检查和限流。公开发布前需配置 HTTPS、平台级限流与用量控制。无需数据库。
 
@@ -31,7 +31,7 @@
 - public/：界面、交互、图标与本地字体子集。sound.js 只提供未来音效适配入口，没有实际音频或开关。
 - roles.json：测试确定的三个角色配置，含公共开场白与分类化判定条款。
 - decision.mjs：议案入口分类、结果校验与多数计票。
-- server.mjs：静态页面与官方 Jev 接口连接；decision.mjs 与 roles.json 按 mtime 热重载，改完即生效，无需重启。
+- server.mjs：静态页面与官方 Jev 接口连接，并将议案历史写入 `data/question-history.txt`；decision.mjs 与 roles.json 按 mtime 热重载，改完即生效，无需重启。
 - test/：计票与异常结果验证；运行 `npm test`。
 
 ## 视觉与适配
