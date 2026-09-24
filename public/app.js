@@ -77,7 +77,7 @@ function errorState(message){units.forEach(u=>unitState(u,'error','判断中断'
 form.addEventListener('submit',async e=>{
  e.preventDefault();if(busy||booting)return;
  const question=input.value.trim();
- if(!question){result('error','等待议案','请写下你想做的事，或正在考虑的选择。');input.focus();return;}
+ if(!question){standby();$('#result-detail').textContent='请写下你想做的事，或正在考虑的选择。';input.focus();return;}
  busy=true;completed=false;submit.disabled=true;clear.disabled=true;input.readOnly=true;$('#example').disabled=true;input.blur();form.setAttribute('aria-busy','true');
  units.forEach(u=>unitState(u,'thinking','判断中'));result('thinking','决议进行中','三个单元正在独立判断。');$('#phase').textContent='EVALUATING';soundEvent('submit');
  const started=performance.now();
