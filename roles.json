@@ -1,5 +1,5 @@
 {
-  "version": "0.26",
+  "version": "0.27",
   "model": "jev-1.13.0",
   "vote_rule": "noul > 0.5 => yes; otherwise no; invalid => error",
   "pass_rule": "at least 2 yes votes",

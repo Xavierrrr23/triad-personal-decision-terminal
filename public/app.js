@@ -105,6 +105,7 @@ form.addEventListener('submit',async e=>{
 });
 $('#crt-toggle').addEventListener('click',()=>{const on=document.documentElement.dataset.crt!=='on';document.documentElement.dataset.crt=on?'on':'off';$('#crt-toggle').setAttribute('aria-pressed',String(on));$('#crt-toggle').setAttribute('aria-label',on?'关闭 CRT 屏幕效果':'开启 CRT 屏幕效果');$('#crt-status').textContent=on?'ON':'OFF';});
 function tick(){$('#clock').textContent=new Date().toLocaleTimeString('en-GB',{hour12:false});}tick();setInterval(tick,1000);
+const terminalIdEl=$('#terminal-id');if(terminalIdEl&&terminalIdEl.dataset.id)terminalIdEl.textContent=terminalIdEl.dataset.id;
 fetch('/api/health').then(r=>r.json()).then(data=>{publicReady=Boolean(data.configured);publicDailyLimit=Number(data.publicDailyLimit)||0;publicRemaining=Number.isInteger(data.publicRemaining)?data.publicRemaining:null;renderConnection();}).catch(()=>{publicReady=false;connection.textContent=privateKey?'私人终端已就绪':'公共终端连接中断';connectionQuota.textContent='';access.dataset.ready=String(Boolean(privateKey));});
 
 // Center short input vertically; wrapped text can use the existing two-line space.

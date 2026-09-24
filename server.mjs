@@ -116,6 +116,13 @@ const server = http.createServer(async (req,res) => {
   if (req.method === 'GET' && assets.has(pathname)) {
     const [file,type] = assets.get(pathname);
     if (type === 'font/woff2') res.setHeader('Cache-Control','public, max-age=31536000, immutable');
+    if (file === 'index.html') {
+      const { roles: hotRoles } = await fresh();
+      const terminalId = String(hotRoles?.terminalId || `v${hotRoles?.version || '0.2'}`).replace(/[^0-9A-Za-z_.-]/g, '').slice(0, 12);
+      const html = readFileSync(join(root,'public',file),'utf8').replace('id="terminal-id"', `id="terminal-id" data-id="${terminalId}"`);
+      res.writeHead(200,{'Content-Type':type});
+      return res.end(html);
+    }
     res.writeHead(200,{'Content-Type':type}); return res.end(readFileSync(join(root,'public',file)));
   }
   if (pathname !== '/api/decide') return send(404,{message:'未找到页面。'});
