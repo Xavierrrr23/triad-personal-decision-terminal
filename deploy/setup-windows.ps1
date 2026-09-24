@@ -50,8 +50,27 @@ Write-Step '2/8 Install Caddy (HTTPS reverse proxy)'
 $CaddyDir = "C:\Caddy"
 if (-not (Test-Path "$CaddyDir\caddy.exe")) {
   New-Item -ItemType Directory -Path $CaddyDir -Force | Out-Null
-  Invoke-WebRequest -UseBasicParsing "https://caddyserver.com/api/download?os=windows&arch=amd64" -OutFile "$env:TEMP\caddy.zip"
-  Expand-Archive "$env:TEMP\caddy.zip" -DestinationPath $CaddyDir -Force
+  $CaddyZip = "$env:TEMP\caddy.zip"
+  $urls = @(
+    "https://github.com/caddyserver/caddy/releases/download/v2.11.4/caddy_2.11.4_windows_amd64.zip",
+    "https://caddyserver.com/api/download?os=windows&arch=amd64",
+    "https://ghproxy.net/https://github.com/caddyserver/caddy/releases/download/v2.11.4/caddy_2.11.4_windows_amd64.zip"
+  )
+  $ok = $false
+  foreach ($u in $urls) {
+    for ($attempt = 1; $attempt -le 2 -and -not $ok; $attempt++) {
+      try {
+        Write-Host "Downloading Caddy (attempt $attempt): $u"
+        Invoke-WebRequest -UseBasicParsing $u -OutFile $CaddyZip
+        if ((Get-Item $CaddyZip).Length -gt 10MB) {
+          Expand-Archive $CaddyZip -DestinationPath $CaddyDir -Force
+          if (Test-Path "$CaddyDir\caddy.exe") { $ok = $true; break }
+        }
+      } catch { Write-Host "  failed: $($_.Exception.Message)" }
+    }
+    if ($ok) { break }
+  }
+  if (-not $ok) { Write-Host '[X] Caddy download failed. Check network, then re-run this script.' -ForegroundColor Red; exit 1 }
 }
 
 Write-Step '3/8 Generate .env.local (fill in your key afterwards)'
@@ -136,7 +155,16 @@ $Domain {
 "@
 Set-Content -Path "$CaddyDir\Caddyfile" -Value $Caddyfile -Encoding ascii
 foreach ($svc in @('triad-node','caddy')) {
-  if ((Get-Service $svc).Status -eq 'Running') { Restart-Service $svc } else { Start-Service $svc }
+  try {
+    if ((Get-Service $svc).Status -eq 'Running') { Restart-Service $svc } else { Start-Service $svc }
+  } catch {
+    Write-Host "[X] Failed to start service $svc : $($_.Exception.Message)" -ForegroundColor Red
+    if ($svc -eq 'caddy') {
+      Write-Host '    Caddy may be missing or the zip was corrupted. Logs:'
+      Write-Host '    Get-Content C:\Caddy\caddy.log -Tail 20'
+    }
+    exit 1
+  }
 }
 Start-Sleep 8
 $health = Invoke-RestMethod -UseBasicParsing "http://localhost:4317/api/health"
