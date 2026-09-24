@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#141310">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="description" content="提交你此刻的犹豫。理性、守护、自我，三票形成一次决议。">
-  <title>三相议决 TRIAD · 超高智能个人即时决策系统</title>
+  <meta name="description" content="写下你正在考虑的选择。理性、守护、自我，三个单元独立判断，形成一次决议。">
+  <title>TRIAD · 个人即时决策系统</title>
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/style.css">
   <script type="module" src="/app.js"></script>
@@ -15,21 +15,21 @@
 <body>
   <main class="terminal">
     <div class="screen-fx" aria-hidden="true"><i class="sweep"></i></div>
-    <div class="hardware-top"><span>PERSONAL TERMINAL / 001</span><span class="live-indicator"><i></i><span id="connection">连接中</span></span></div>
+    <div class="hardware-top"><span>PERSONAL TERMINAL / 001</span><span class="live-indicator"><i></i><span id="connection">正在连接</span></span></div>
     <header class="masthead">
       <div class="wordmark">TRIAD<span class="cursor-block" aria-hidden="true"></span></div>
       <div class="product-name"><span>超高智能</span><h1>个人即时决策系统</h1></div>
     </header>
-    <div class="subhead"><span>三相议决 <b>／</b> 留给此刻的你</span><time id="clock">--:--:--</time></div>
+    <div class="subhead"><span>三相决议 <b>／</b> 留给此刻的你</span><time id="clock">--:--:--</time></div>
 
     <form id="agenda-form" novalidate>
       <div class="section-caption"><label for="agenda">01 / 提交议案</label><span id="count">0 / 300</span></div>
-      <div class="input-shell"><span class="prompt-mark" aria-hidden="true">&gt;</span><textarea id="agenda" rows="2" maxlength="300" placeholder="提交你此刻的犹豫。" aria-describedby="input-hint"></textarea><button id="clear" type="button" aria-label="清空议案"><span aria-hidden="true">×</span></button><button id="submit" type="submit" aria-label="提交议案"><span aria-hidden="true">⏎</span></button></div>
-      <div class="input-footer"><span id="input-hint">一句话，三个视角，一次裁决。</span><button id="example" type="button">试一条议案 <span aria-hidden="true">↗</span></button></div>
+      <div class="input-shell"><span class="prompt-mark" aria-hidden="true">&gt;</span><textarea id="agenda" rows="2" maxlength="300" placeholder="写下你正在考虑的选择。" aria-describedby="input-hint"></textarea><button id="clear" type="button" aria-label="清空议案"><span aria-hidden="true">×</span></button><button id="submit" type="submit" aria-label="提交议案"><span aria-hidden="true">⏎</span></button></div>
+      <div class="input-footer"><span id="input-hint">一句话，三个视角，一次决议。</span><button id="example" type="button">载入示例 <span aria-hidden="true">↗</span></button></div>
     </form>
 
     <section class="council-section" aria-label="三个独立判断单元">
-      <div class="section-caption council-caption"><span>02 / 三相独立判断</span><span id="phase">AWAITING INPUT</span></div>
+      <div class="section-caption council-caption"><span>02 / 三相表决</span><span id="phase">AWAITING INPUT</span></div>
       <div class="council">
         <svg class="circuit" viewBox="0 0 400 370" preserveAspectRatio="none" aria-hidden="true"><path d="M200 192V140M200 192L94 248M200 192L306 248"/></svg>
         <div class="hub" aria-hidden="true"><i class="hub-ticks"></i><i class="hub-ring"></i><i class="hub-ping"></i><i class="hub-core"></i></div>
@@ -38,26 +38,26 @@
         <article class="unit rational" data-role="rational" data-state="standby">
           <svg class="panel-border" viewBox="0 0 200 180" preserveAspectRatio="none" aria-hidden="true"><path d="M20 1H199V148L180 179H1V33Z"/></svg>
           <div class="unit-heading"><span class="unit-number">01</span><h2>理性</h2><i class="unit-light"></i></div><div class="unit-code">RATIONAL</div>
-          <div class="vote"><span>待命</span></div><div class="unit-question">合理，且可行吗？</div>
+          <div class="vote"><span>待命</span></div><div class="unit-question">现实得失，是否值得？</div>
         </article>
         <article class="unit guardian" data-role="guardian" data-state="standby">
           <svg class="panel-border" viewBox="0 0 200 180" preserveAspectRatio="none" aria-hidden="true"><path d="M20 1H199V148L180 179H1V33Z"/></svg>
           <div class="unit-heading"><span class="unit-number">02</span><h2>守护</h2><i class="unit-light"></i></div><div class="unit-code">GUARDIAN</div>
-          <div class="vote"><span>待命</span></div><div class="unit-question">对人和未来有益吗？</div>
+          <div class="vote"><span>待命</span></div><div class="unit-question">能否守护自己与他人？</div>
         </article>
         <article class="unit self" data-role="self" data-state="standby">
           <svg class="panel-border" viewBox="0 0 200 180" preserveAspectRatio="none" aria-hidden="true"><path d="M20 1H199V148L180 179H1V33Z"/></svg>
           <div class="unit-heading"><span class="unit-number">03</span><h2>自我</h2><i class="unit-light"></i></div><div class="unit-code">SELF</div>
-          <div class="vote"><span>待命</span></div><div class="unit-question">这是你想要的吗？</div>
+          <div class="vote"><span>待命</span></div><div class="unit-question">这是你真正想要的吗？</div>
         </article>
       </div>
     </section>
 
     <section class="verdict" id="verdict" data-state="standby" aria-live="polite" aria-atomic="true">
       <div class="verdict-rail"><i></i><i></i><i></i></div>
-      <div class="verdict-body"><div class="verdict-label">综合判定<span>FINAL<br>DECISION</span></div><div class="verdict-content"><h2 id="result-title">等待议案<span class="tiny-cursor" aria-hidden="true">_</span></h2><p id="result-detail">三位就绪，等待你的一个念头。</p></div><div class="verdict-stamp"><span id="verdict-stamp" aria-hidden="true">STANDBY</span><span id="result-symbol" aria-hidden="true">—</span></div></div>
+      <div class="verdict-body"><div class="verdict-label">最终决议<span>FINAL<br>DECISION</span></div><div class="verdict-content"><h2 id="result-title">等待议案<span class="tiny-cursor" aria-hidden="true">_</span></h2><p id="result-detail">三个单元已就绪，等待提交议案。</p></div><div class="verdict-stamp"><span id="verdict-stamp" aria-hidden="true">STANDBY</span><span id="result-symbol" aria-hidden="true">—</span></div></div>
     </section>
-    <footer><div><span class="footer-name">TRIAD / 私人决策终端</span><p>娱乐性决议 · 选择权始终在你</p></div><button id="crt-toggle" type="button" aria-pressed="true" aria-label="关闭旧屏幕效果">CRT <span id="crt-status">ON</span><i></i></button></footer>
+    <footer><div><span class="footer-name">TRIAD / 私人决策终端</span><p>娱乐性决议 · 选择权始终在你</p></div><button id="crt-toggle" type="button" aria-pressed="true" aria-label="关闭 CRT 屏幕效果">CRT <span id="crt-status">ON</span><i></i></button></footer>
     <div class="bottom-line"><span>DESIGN BY XAVIER · POWERED BY JEV</span><span>THINK × 3 &nbsp; / &nbsp; DECIDE × 1</span></div>
   </main>
   <div class="outside-note" aria-hidden="true">A LITTLE CERTAINTY IN AN UNCERTAIN WORLD.</div>
