@@ -1,4 +1,4 @@
-# 部署指南 — 阿里云 ECS
+# 部署指南 — 阿里云轻量应用服务器(ECS 同样适用)
 
 目标架构:浏览器 → Nginx(443,HTTPS)→ 本机 Node(127.0.0.1:4317,PM2 守护)→ TypeSafe API。4317 端口永不对外。
 
@@ -12,10 +12,11 @@ graph LR
 
 ## 前提条件(先做,缺一不可)
 
-1. **ECS 实例**:Ubuntu 22.04 推荐,2C2G 足够(项目零第三方依赖)。
-2. **域名解析**:在你的 DNS 服务商把域名 A 记录指向 ECS 公网 IP,等 1~10 分钟生效。
-3. **备案(大陆地域)**:域名解析到中国大陆地域服务器必须先完成 ICP 备案,否则阿里云会拦截 80/443 访问。不想备案可把 ECS 开在香港/海外地域(跨境延迟略高)。备案一般需要数天到数周,建议先并行发起。
-4. **安全组**:放行 80 与 443(0.0.0.0/0);22 端口建议仅限你自己的 IP。**4317 不要放行**。
+1. **轻量应用服务器实例**:建议规格 2G 内存及以上(项目零第三方依赖,占用很小)。
+2. **选对镜像**:创建/重装实例时选**系统镜像**——Ubuntu 22.04、Debian 12 或 Alibaba Cloud Linux 3 均可。**不要选 LNMP/LAMP 应用镜像**(自带旧版 Nginx 会和脚本安装的冲突)。
+3. **域名解析**:在你的 DNS 服务商把域名 A 记录指向轻量服务器公网 IP,等 1~10 分钟生效。
+4. **放行端口(轻量服务器的关键)**:轻量服务器不用 ECS 的「安全组」,而是控制台的「防火墙」页——在那里**放行 TCP 80 与 443**。4317 不要放行。这是最常见的坑:系统里 Nginx 配置全对,但控制台防火墙没放行,外部就是访问不了。
+5. **备案(大陆地域)**:域名解析到中国大陆地域服务器必须先完成 ICP 备案,否则阿里云会拦截 80/443 访问。不想备案可把轻量服务器开在香港/新加坡地域(跨境延迟略高)。备案一般需要数天到数周,建议先并行发起。
 
 ## 部署(推荐:一键脚本)
 
@@ -29,6 +30,8 @@ sudo bash deploy/setup.sh triad.example.com your@email.com
 ```
 
 脚本流程:装依赖 → 装 Node 22 → 拉代码 → 生成 `.env.local`(提示你填入 `TYPESAFE_API_KEY`,填好后重跑脚本)→ 跑测试 → PM2 启动 → Nginx 站点 → certbot 签发 HTTPS。
+
+脚本会自动适配你实例的系统:Ubuntu/Debian 走 `apt`,Alibaba Cloud Linux 走 `dnf/yum`,Nginx 站点配置也会放到对应目录(`sites-enabled` 或 `conf.d`)。
 
 完成即得 `https://你的域名`。
 
@@ -86,6 +89,11 @@ git -C /opt/triad pull --ff-only && pm2 restart triad   # 更新代码
 - 证书续期由 certbot 的 systemd 定时器自动执行,`certbot renew --dry-run` 可验证。
 - 议案历史在服务器 `/opt/triad/data/question-history.txt`(git 忽略),想备份就备它;想清空 `> data/question-history.txt` 即可。
 
+## 轻量应用服务器专属提示
+
+- **证书替代方案**:脚本默认 Let's Encrypt(自动续期)。轻量应用服务器控制台也提供**免费证书**(有效期 1 年):在「域名与网站 → 证书」申请下载后,把 `nginx.conf` 里的 `ssl_certificate` / `ssl_certificate_key` 两行改成你上传的证书路径,`nginx -t && systemctl reload nginx` 即可。手动证书记得每年更新一次。
+- **重置/重装系统前**:先备份 `/opt/triad/data/question-history.txt` 和 `/opt/triad/.env.local`(Key),重装后重新跑一遍脚本即可。
+
 ## 故障排查
 
 | 现象 | 原因与处理 |
@@ -94,5 +102,6 @@ git -C /opt/triad pull --ff-only && pm2 restart triad   # 更新代码
 | 429「今日公共次数已用尽」 | 配额设计行为;用私人 Key,或调大 `PUBLIC_DAILY_LIMIT` |
 | certbot 签发失败 | 检查 A 记录是否生效、安全组 80 是否放行、`/var/www/certbot` 是否存在 |
 | 手机能开 HTTP 但 HTTPS 证书报错 | 证书域名与访问域名不一致;确认没访问到 IP 直连 |
+| 浏览器直接打不开、ping 不通 80 | 轻量控制台「防火墙」没放行 80/443;去控制台加规则 |
 | 端口被占(EADDRINUSE) | `pm2 status` 看是否已有一份 triad 在跑 |
 | 所有访客共用一个配额 | `TRUST_PROXY` 未开,或 Nginx 没配 `X-Forwarded-For`;检查两处 |

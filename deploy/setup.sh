@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# TRIAD 一键部署脚本 — 适用于阿里云 Ubuntu 22.04+ / Debian 12
+# TRIAD 一键部署脚本 — 阿里云轻量应用服务器 / ECS
+# 适用系统镜像:Ubuntu 22.04+ / Debian 12(apt)、Alibaba Cloud Linux 3 / Rocky 9(dnf/yum)
+# 前置(重要):轻量服务器控制台「防火墙」放行 TCP 80 与 443;4317 保持不放行。
 # 用法(在服务器上):
 #   sudo bash deploy/setup.sh triad.example.com your@email.com
 # 首次运行会生成 .env.local 并提示你填入 TYPESAFE_API_KEY, 填好后重跑一次即可。
@@ -10,17 +12,43 @@ EMAIL="${2:-}"
 APP_DIR="/opt/triad"
 REPO="https://github.com/Xavierrrr23/triad-personal-decision-terminal.git"
 
-echo "▸ 目标域名: $DOMAIN"
+# 自动检测包管理器(轻量服务器常见三种系统镜像)
+if command -v apt-get >/dev/null 2>&1; then
+  PM=apt
+elif command -v dnf >/dev/null 2>&1; then
+  PM=dnf
+elif command -v yum >/dev/null 2>&1; then
+  PM=yum
+else
+  echo "✗ 未找到 apt/dnf/yum。请使用系统镜像:Ubuntu 22.04、Debian 12 或 Alibaba Cloud Linux 3。"
+  exit 1
+fi
+install_pkg() {
+  case $PM in
+    apt) DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "$@" ;;
+    dnf) dnf install -y -q "$@" ;;
+    yum) yum install -y -q "$@" ;;
+  esac
+}
 
-echo "== 1/8 安装依赖 (nginx / certbot / git / curl) =="
-export DEBIAN_FRONTEND=noninteractive
-apt-get update -qq
-apt-get install -y -qq nginx certbot git curl
+echo "▸ 目标域名: $DOMAIN | 包管理器: $PM"
+echo "⚠ 确认:轻量服务器控制台「防火墙」已放行 TCP 80/443,4317 不对外。"
+
+echo "== 1/8 安装依赖 (nginx / git / curl) =="
+if [ "$PM" = apt ]; then
+  apt-get update -qq
+else
+  $PM install -y -q epel-release 2>/dev/null || true
+fi
+install_pkg nginx git curl
 
 echo "== 2/8 安装 Node.js 22 =="
 if ! command -v node >/dev/null 2>&1 || [ "$(node -v | sed 's/v//' | cut -d. -f1)" -lt 22 ]; then
-  curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
-  apt-get install -y -qq nodejs
+  case $PM in
+    apt) curl -fsSL https://deb.nodesource.com/setup_22.x | bash - ;;
+    dnf|yum) curl -fsSL https://rpm.nodesource.com/setup_22.x | bash - ;;
+  esac
+  install_pkg nodejs
 fi
 echo "Node: $(node -v)"
 
@@ -52,21 +80,30 @@ fi
 echo "== 5/8 运行测试 =="
 (cd "$APP_DIR" && npm test)
 
-echo "== 6/8 启动 PM2 守护 =="
+echo "== 6/8 安装 certbot (Let's Encrypt) =="
+install_pkg certbot
+
+echo "== 7/8 启动 PM2 守护 =="
 if ! command -v pm2 >/dev/null 2>&1; then npm install -g pm2; fi
 pm2 start "$APP_DIR/deploy/ecosystem.config.cjs" 2>/dev/null || pm2 restart triad
 pm2 save
-# 开机自启(以 root 运行时直接生效)
-pm2 startup systemd -u root --hp /root >/dev/null 2>&1 || true
+# 开机自启(自动适配当前用户,轻量服务器默认 root)
+RUN_USER=$(whoami)
+pm2 startup systemd -u "$RUN_USER" --hp "$HOME" >/dev/null 2>&1 || true
 
-echo "== 7/8 Nginx 站点 =="
-sed "s/triad\\.example\\.com/$DOMAIN/g" "$APP_DIR/deploy/nginx.conf" > /etc/nginx/sites-available/triad
-ln -sf /etc/nginx/sites-available/triad /etc/nginx/sites-enabled/triad
-rm -f /etc/nginx/sites-enabled/default
+echo "== 8/8 Nginx 站点 + HTTPS =="
+# Debian 系用 sites-enabled;RHEL 系(Alibaba Cloud Linux)没有该目录,直接 conf.d
+if [ -d /etc/nginx/sites-available ]; then
+  sed "s/triad\\.example\\.com/$DOMAIN/g" "$APP_DIR/deploy/nginx.conf" > /etc/nginx/sites-available/triad
+  ln -sf /etc/nginx/sites-available/triad /etc/nginx/sites-enabled/triad
+  rm -f /etc/nginx/sites-enabled/default
+else
+  sed "s/triad\\.example\\.com/$DOMAIN/g" "$APP_DIR/deploy/nginx.conf" > /etc/nginx/conf.d/triad.conf
+  rm -f /etc/nginx/conf.d/default.conf
+fi
 mkdir -p /var/www/certbot
-nginx -t && systemctl reload nginx
+nginx -t && systemctl reload nginx && systemctl enable nginx
 
-echo "== 8/8 签发 HTTPS 证书 =="
 if [ -n "$EMAIL" ]; then
   certbot certonly --webroot -w /var/www/certbot -d "$DOMAIN" --agree-tos -m "$EMAIL" -n
 else
