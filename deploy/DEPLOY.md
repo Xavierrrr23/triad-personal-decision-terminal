@@ -94,6 +94,52 @@ git -C /opt/triad pull --ff-only && pm2 restart triad   # 更新代码
 - **证书替代方案**:脚本默认 Let's Encrypt(自动续期)。轻量应用服务器控制台也提供**免费证书**(有效期 1 年):在「域名与网站 → 证书」申请下载后,把 `nginx.conf` 里的 `ssl_certificate` / `ssl_certificate_key` 两行改成你上传的证书路径,`nginx -t && systemctl reload nginx` 即可。手动证书记得每年更新一次。
 - **重置/重装系统前**:先备份 `/opt/triad/data/question-history.txt` 和 `/opt/triad/.env.local`(Key),重装后重新跑一遍脚本即可。
 
+## Windows Server 部署(你的轻量是 Windows 镜像时)
+
+架构不变(浏览器 → Caddy 443 → Node 127.0.0.1:4317),组件换成 Windows 原生:Caddy 替代 Nginx(单文件、自动签发 Let's Encrypt),NSSM 把 Node 和 Caddy 注册成 Windows 服务(开机自启 + 崩溃自动重启)。上文的 `setup.sh` 是 Linux 专用,Windows 用 `setup-windows.ps1`。
+
+### 一次性准备
+
+1. 轻量控制台「防火墙」放行 TCP 80/443(4317 不放行)——轻量有两层防火墙,控制台层必须手动,系统层脚本会处理。
+2. 打开「远程连接」→ PowerShell,把项目下载到服务器:
+
+```powershell
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/Xavierrrr23/triad-personal-decision-terminal/archive/refs/heads/main.zip" -OutFile "$env:TEMP\triad.zip"
+Expand-Archive "$env:TEMP\triad.zip" -DestinationPath C:\ -Force
+if (-not (Test-Path C:\triad)) { Rename-Item "C:\triad-personal-decision-terminal-main" "C:\triad" }
+cd C:\triad
+```
+
+### 运行部署脚本(第一次:提示填 Key)
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass -Force
+.\deploy\setup-windows.ps1 -Domain 你的域名
+```
+
+首次运行会停在提示处,让你填 `TYPESAFE_API_KEY`:
+
+```powershell
+(Get-Content C:\triad\.env.local) -replace 'PASTE_YOUR_KEY_HERE','你的Key' | Set-Content C:\triad\.env.local
+```
+
+填好后**重跑一遍脚本**即可完成。脚本自动:装 Node LTS → 装 Caddy → 生成 `.env.local` → 校正时区(中国标准时间,决议时段判断依赖它)→ 停用占 80 端口的 IIS → 放行系统防火墙 → NSSM 注册 `triad-node` / `caddy` 服务 → 启动并自检。完成即得 `https://你的域名`。
+
+### Windows 运维
+
+```powershell
+Get-Service triad-node, caddy                    # 看服务状态
+Restart-Service triad-node                       # 重启 Node
+Get-Content C:\Caddy\caddy.log -Tail 50          # Caddy 日志(证书签发进度也在这)
+Get-Content C:\triad\data\node.log -Tail 50      # Node 日志
+```
+
+- 更新代码:重新下载 zip 解压,覆盖到 `C:\triad`(保留 `.env.local` 和 `data\`),再 `Restart-Service triad-node`。
+- 改 `decision.mjs` / `roles.json` 同样免重启(热重载)。
+- Caddy 首次启动自动签发证书,域名解析未生效时会自动重试,进度看 `C:\Caddy\caddy.log`。
+- 重启服务器后两个服务自动拉起,无需任何手动操作。
+
 ## 故障排查
 
 | 现象 | 原因与处理 |
