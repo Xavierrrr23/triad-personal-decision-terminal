@@ -10,6 +10,8 @@ graph LR
   C --> E[data/question-history.txt]
 ```
 
+每次提交先由 Node 服务调用一次 Jev 做入口分类。只有 `agenda` 会在本地提取 `proposal`、`context` 和 `proposalMode`，然后并行调用理性、守护、自我三个独立判断单元；最终票数由 Node 本地计算，至少两票是才通过。`emotion`、`multiple`、`fact`、`self_worth`、`crisis`、`violence` 和 `unclear` 只返回入口状态，不会继续调用角色。`decision.mjs` 与 `roles.json` 按文件修改时间热重载，更新规则后无需重启 Node。
+
 ## 前提条件(先做,缺一不可)
 
 1. **轻量应用服务器实例**:建议规格 2G 内存及以上(项目零第三方依赖,占用很小)。
@@ -71,10 +73,13 @@ PORT=4317
 HOST=127.0.0.1
 PUBLIC_DAILY_LIMIT=23
 TRUST_PROXY=1
+# 可选:本地每个来源一分钟请求上限,默认 12;批量测试时临时提高
+LOCAL_REQUEST_LIMIT=12
 ```
 
 - `HOST=127.0.0.1` + `TRUST_PROXY=1` 是配套组合:端口只给本机 Nginx 用,配额按 Nginx 传来的 `X-Forwarded-For` 计每个访客 IP。**直接暴露端口时绝不能开 TRUST_PROXY**(头可伪造)。
 - `PUBLIC_DAILY_LIMIT=23`:公共终端每 IP 每日 23 次,私人 Key 用户不受限。改数字后 `pm2 restart triad --update-env` 生效(或改 `deploy/ecosystem.config.cjs` 再 `pm2 reload triad`)。
+- `LOCAL_REQUEST_LIMIT=12`:服务端短时限流的默认值。它只限制一分钟内的本地请求数，不影响公共每日配额；生产环境不需要为了测试提高它。
 
 ## 日常运维
 
@@ -86,6 +91,7 @@ git -C /opt/triad pull --ff-only && pm2 restart triad   # 更新代码
 
 - 改 `decision.mjs` / `roles.json` 无需重启(每次请求按 mtime 热重载)。
 - 前端静态资源带 `no-store`,浏览器无需清缓存。
+- 更新后可先运行 `npm test`，再用 `curl -s http://127.0.0.1:4317/api/health` 确认 `configured` 和规则版本；浏览器端提交一条议案确认入口与三票流程。
 - 证书续期由 certbot 的 systemd 定时器自动执行,`certbot renew --dry-run` 可验证。
 - 议案历史在服务器 `/opt/triad/data/question-history.txt`(git 忽略),想备份就备它;想清空 `> data/question-history.txt` 即可。
 
