@@ -285,3 +285,8 @@ body{padding:clamp(10px,1.8vw,26px);background-color:#0d0c0a}
 
 /* Direct the private-terminal owner to the official Key portal without leaving TRIAD. */
 .terminal-dialog__key-label{display:flex;align-items:baseline;justify-content:space-between;gap:12px}.terminal-dialog__key-label label{margin-bottom:8px}.terminal-dialog__key-label a{color:var(--ink);font-size:10px;letter-spacing:1px;text-decoration:none;white-space:nowrap}.terminal-dialog__key-label a:hover,.terminal-dialog__key-label a:focus-visible{color:var(--bright);text-decoration:underline;text-underline-offset:3px}
+
+/* Keep the three voting units legible when the browser applies larger text. */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.terminal{container-type:size}
+.council-section{min-height:min(42cqh,390px)}
