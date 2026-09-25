@@ -19,7 +19,7 @@ async function fresh() {
   if (dm !== decisionMtime) { decisionMtime = dm; decision = await import(`${decisionPath}?t=${dm}`); }
   const rm = statSync(rolesPath).mtimeMs;
   if (rm !== rolesMtime) { rolesMtime = rm; roles = JSON.parse(readFileSync(rolesPath, 'utf8')); }
-  return { interpret: decision.interpret, screening: decision.screening, roles };
+  return { interpret: decision.interpret, screening: decision.screening, resolveProposal: decision.resolveProposal, roles };
 }
 // 组装角色问题:common.preamble 注入到各角色指令前;preamble:"own" 的角色自带完整开场白。
 function buildQuestions(roles) {
@@ -49,6 +49,7 @@ const cfg = { ...envFile(join(root, '.env.local')), ...process.env };
 const key = cfg.TYPESAFE_API_KEY || envFile(cfg.TYPESAFE_KEY_FILE || '').TYPESAFE_API_KEY;
 const port = Number(cfg.PORT || 4317);
 const publicDailyLimit = Math.max(0, Math.floor(Number(cfg.PUBLIC_DAILY_LIMIT) || 0));
+const localRequestLimit = Math.max(1, Math.floor(Number(cfg.LOCAL_REQUEST_LIMIT) || 12));
 const assets = new Map([
   ['/', ['index.html','text/html; charset=utf-8']],
   ['/style.css',['style.css','text/css; charset=utf-8']],
@@ -145,7 +146,7 @@ const server = http.createServer(async (req,res) => {
   const now=Date.now();
   for (const [ip, times] of requests) { const active=times.filter(t=>now-t<60000); if (!active.length) requests.delete(ip); else requests.set(ip,active); }
   const recent=requests.get(address)||[];
-  if (recent.length>=12 || concurrent>=3) return send(429,{message:'终端繁忙，请稍后提交。'});
+  if (recent.length>=localRequestLimit || concurrent>=3) return send(429,{code:'local_busy',message:'终端繁忙，请稍后提交。'});
   let text='';
   try {
     for await (const chunk of req) { text+=chunk; if (Buffer.byteLength(text)>4096) return send(413,{message:'议案超出长度限制，请控制在 300 字以内。'}); }
@@ -164,16 +165,47 @@ const server = http.createServer(async (req,res) => {
     requests.set(address,[...recent,now]); concurrent++;
     try {
       const { roles: hotRoles, screening: hotScreening } = await fresh();
-      const upstream=await fetch('https://api.typesafe.ai/v1/systemone',{
-        method:'POST', headers:{'Content-Type':'application/json',Authorization:`Bearer ${requestKey}`},
-        body:JSON.stringify({model:hotRoles.model,state:`${question}\n${timeContext()}`,questions:{...buildQuestions(hotRoles),...hotScreening}}),
-        signal:AbortSignal.timeout(20000), redirect:'error',
+      const upstreamError = (status) => send(status===429?429:(privateKey&&(status===401||status===403)?401:502),{code:status===429?'upstream_rate_limited':privateKey&&(status===401||status===403)?'upstream_auth_failed':'upstream_unavailable',message:status===429?'判断服务繁忙，请稍后重试。':privateKey&&(status===401||status===403)?'私人 Key 无效或已失效，请在右上角重新设置。':'暂时无法连接判断服务，请稍后重试。'});
+      const callJev = async body => {
+        const upstream=await fetch('https://api.typesafe.ai/v1/systemone',{
+          method:'POST', headers:{'Content-Type':'application/json',Authorization:`Bearer ${requestKey}`},
+          body:JSON.stringify(body), signal:AbortSignal.timeout(20000), redirect:'error',
+        });
+        if (!upstream.ok) return { error: upstream.status };
+        return { data: await upstream.json() };
+      };
+      const screeningResult = await callJev({
+        model:hotRoles.model,
+        state:`${question}\n${timeContext()}`,
+        questions:{ entry:hotScreening.entry },
       });
-      if (!upstream.ok) return send(upstream.status===429?429:(privateKey&&(upstream.status===401||upstream.status===403)?401:502),{message:upstream.status===429?'判断服务繁忙，请稍后重试。':privateKey&&(upstream.status===401||upstream.status===403)?'私人 Key 无效或已失效，请在右上角重新设置。':'暂时无法连接判断服务，请稍后重试。'});
+      if (screeningResult.error) return upstreamError(screeningResult.error);
+      const category = screeningResult.data?.answers?.entry?.choice;
+      if (category !== 'agenda') {
+        const { interpret } = await fresh();
+        const entryResponse={answers:{entry:screeningResult.data.answers.entry,rational:{noul:0},guardian:{noul:0},self:{noul:0}}};
+        return send(200,{...interpret(entryResponse),publicDailyLimit:quota?.limit,publicRemaining:quota?.remaining});
+      }
+      const { resolveProposal } = await fresh();
+      const proposal=resolveProposal(question);
+      const roleState={ original:question, proposal:proposal.object, context:proposal.context, proposalMode:proposal.mode, submittedAt:timeContext() };
+      const roleQuestions=buildQuestions(hotRoles);
+      // MAGI 式独立投票:每个单元单独请求,避免同一响应里的角色互相锚定。
+      const roleResults=await Promise.all(Object.entries(roleQuestions).map(async ([id, questionConfig]) => [id, await callJev({
+        model:hotRoles.model,
+        state:roleState,
+        questions:{ [id]: questionConfig },
+      })]));
+      const failedRole=roleResults.find(([, result]) => result.error);
+      if (failedRole) return upstreamError(failedRole[1].error);
+      const roleAnswers=Object.fromEntries(roleResults.map(([id, result]) => [id, result.data?.answers?.[id]]));
       const { interpret } = await fresh();
-      return send(200,{...interpret(await upstream.json()),publicDailyLimit:quota?.limit,publicRemaining:quota?.remaining});
+      return send(200,{...interpret({answers:{...roleAnswers,entry:screeningResult.data.answers.entry}}),publicDailyLimit:quota?.limit,publicRemaining:quota?.remaining});
     } finally { concurrent--; }
-  } catch { if (!res.headersSent) return send(502,{message:'连接中断，决议未完成。请重新提交。'}); }
+  } catch (error) {
+    console.error('决议请求失败:', error?.name || 'Error', error?.message || error);
+    if (!res.headersSent) return send(502,{code:'upstream_network_error',message:'连接中断，决议未完成。请重新提交。'});
+  }
 });
 server.requestTimeout=30000;
 server.on('error',error=>{console.error(error.code==='EADDRINUSE'?'端口已被使用。已有终端可能正在运行：http://localhost:'+port:'终端启动失败：'+error.code);process.exit(1);});

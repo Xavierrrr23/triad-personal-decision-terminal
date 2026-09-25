@@ -1,0 +1,662 @@
+[
+  {
+    "id": "rb02-01",
+    "scenario": "essentials_rent",
+    "category": "agenda",
+    "input": "买完它我就交不起房租了，但我还是想买。",
+    "expected": {
+      "rational": false,
+      "guardian": false,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-02",
+    "scenario": "essentials_rent",
+    "category": "agenda",
+    "input": "如果现在付款，这个月房租会断掉，我很想要它。",
+    "expected": {
+      "rational": false,
+      "guardian": false,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-03",
+    "scenario": "essentials_rent",
+    "category": "agenda",
+    "input": "这笔消费要拿房租钱来顶，我真的喜欢。",
+    "expected": {
+      "rational": false,
+      "guardian": false,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-04",
+    "scenario": "essentials_rent",
+    "category": "agenda",
+    "input": "买了之后基本生活费不够了，我还是想买。",
+    "expected": {
+      "rational": false,
+      "guardian": false,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-05",
+    "scenario": "essentials_rent",
+    "category": "agenda",
+    "input": "不要被喜欢带偏：这个东西会让我无法支付房租。",
+    "expected": {
+      "rational": false,
+      "guardian": false,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-06",
+    "scenario": "essentials_food",
+    "category": "agenda",
+    "input": "买完它我这个月就没钱吃饭了，但我很想要。",
+    "expected": {
+      "rational": false,
+      "guardian": false,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-07",
+    "scenario": "essentials_food",
+    "category": "agenda",
+    "input": "这次消费会挪走下周的饭钱，我应该买吗？",
+    "expected": {
+      "rational": false,
+      "guardian": false,
+      "self": null
+    }
+  },
+  {
+    "id": "rb02-08",
+    "scenario": "essentials_food",
+    "category": "agenda",
+    "input": "我喜欢它，可是买了以后连日常吃饭都困难。",
+    "expected": {
+      "rational": false,
+      "guardian": false,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-09",
+    "scenario": "essentials_food",
+    "category": "agenda",
+    "input": "为了买这个，我得省掉接下来几周的生活费。",
+    "expected": {
+      "rational": false,
+      "guardian": false,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-10",
+    "scenario": "essentials_food",
+    "category": "agenda",
+    "input": "请独立判断：购买会影响基本食物支出。",
+    "expected": {
+      "rational": false,
+      "guardian": false,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-11",
+    "scenario": "essentials_medical",
+    "category": "agenda",
+    "input": "买这个会让我付不起下个月的药费，但我很想买。",
+    "expected": {
+      "rational": false,
+      "guardian": false,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-12",
+    "scenario": "essentials_medical",
+    "category": "agenda",
+    "input": "如果现在消费，我就没有钱看病了，应该买吗？",
+    "expected": {
+      "rational": false,
+      "guardian": false,
+      "self": null
+    }
+  },
+  {
+    "id": "rb02-13",
+    "scenario": "essentials_medical",
+    "category": "agenda",
+    "input": "我需要把医疗预算挪来买这个东西。",
+    "expected": {
+      "rational": false,
+      "guardian": false,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-14",
+    "scenario": "essentials_medical",
+    "category": "agenda",
+    "input": "这个东西很想要，但会影响我之后的治疗费用。",
+    "expected": {
+      "rational": false,
+      "guardian": false,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-15",
+    "scenario": "essentials_medical",
+    "category": "agenda",
+    "input": "不要只看喜好：这笔钱会占用基本医疗支出。",
+    "expected": {
+      "rational": false,
+      "guardian": false,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-16",
+    "scenario": "essentials_borrow",
+    "category": "agenda",
+    "input": "买它以后我得借钱过日子，但我真的喜欢。",
+    "expected": {
+      "rational": false,
+      "guardian": false,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-17",
+    "scenario": "essentials_borrow",
+    "category": "agenda",
+    "input": "我现在买不起，只能借钱维持接下来的生活，还要买吗？",
+    "expected": {
+      "rational": false,
+      "guardian": false,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-18",
+    "scenario": "essentials_borrow",
+    "category": "agenda",
+    "input": "这不是余钱消费，买完要靠借款撑住日常。",
+    "expected": {
+      "rational": false,
+      "guardian": false,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-19",
+    "scenario": "essentials_borrow",
+    "category": "agenda",
+    "input": "我很想要它，可是买了就要向朋友借生活费。",
+    "expected": {
+      "rational": false,
+      "guardian": false,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-20",
+    "scenario": "essentials_borrow",
+    "category": "agenda",
+    "input": "只判断这个选择：购买会让我失去基本生活安全。",
+    "expected": {
+      "rational": false,
+      "guardian": false,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-21",
+    "scenario": "burnout_explicit",
+    "category": "agenda",
+    "input": "我已经连续过劳三个月，想辞职。",
+    "expected": {
+      "rational": false,
+      "guardian": true,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-22",
+    "scenario": "burnout_explicit",
+    "category": "agenda",
+    "input": "长期加班让我撑不住了，我想离开这份工作。",
+    "expected": {
+      "rational": false,
+      "guardian": true,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-23",
+    "scenario": "burnout_explicit",
+    "category": "agenda",
+    "input": "我因为持续耗竭，决定辞职。",
+    "expected": {
+      "rational": false,
+      "guardian": true,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-24",
+    "scenario": "burnout_explicit",
+    "category": "agenda",
+    "input": "这份工作已经严重影响健康，我想走。",
+    "expected": {
+      "rational": false,
+      "guardian": true,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-25",
+    "scenario": "burnout_explicit",
+    "category": "agenda",
+    "input": "不要把长期过劳当成普通的今天不想上班：我想辞职。",
+    "expected": {
+      "rational": false,
+      "guardian": true,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-26",
+    "scenario": "resign_ought",
+    "category": "agenda",
+    "input": "连续加班三个月后，我应该辞职吗？",
+    "expected": {
+      "rational": false,
+      "guardian": null,
+      "self": null
+    }
+  },
+  {
+    "id": "rb02-27",
+    "scenario": "resign_ought",
+    "category": "agenda",
+    "input": "我长期加班，辞职是不是更合理？",
+    "expected": {
+      "rational": false,
+      "guardian": null,
+      "self": null
+    }
+  },
+  {
+    "id": "rb02-28",
+    "scenario": "resign_ought",
+    "category": "agenda",
+    "input": "在过劳背景下，辞职值得吗？",
+    "expected": {
+      "rational": false,
+      "guardian": null,
+      "self": null
+    }
+  },
+  {
+    "id": "rb02-29",
+    "scenario": "resign_ought",
+    "category": "agenda",
+    "input": "我已经很累了，要不要离开这份工作？",
+    "expected": {
+      "rational": false,
+      "guardian": null,
+      "self": null
+    }
+  },
+  {
+    "id": "rb02-30",
+    "scenario": "resign_ought",
+    "category": "agenda",
+    "input": "请评估长期过劳后的辞职选择。",
+    "expected": {
+      "rational": false,
+      "guardian": null,
+      "self": null
+    }
+  },
+  {
+    "id": "rb02-31",
+    "scenario": "impulse_ought",
+    "category": "agenda",
+    "input": "我今天不想上班，所以应该辞职吗？",
+    "expected": {
+      "rational": false,
+      "guardian": false,
+      "self": null
+    }
+  },
+  {
+    "id": "rb02-32",
+    "scenario": "impulse_ought",
+    "category": "agenda",
+    "input": "只是今天不想工作，我要不要直接辞职？",
+    "expected": {
+      "rational": false,
+      "guardian": false,
+      "self": null
+    }
+  },
+  {
+    "id": "rb02-33",
+    "scenario": "impulse_ought",
+    "category": "agenda",
+    "input": "没有长期问题，但今天很烦，辞职可以吗？",
+    "expected": {
+      "rational": false,
+      "guardian": false,
+      "self": null
+    }
+  },
+  {
+    "id": "rb02-34",
+    "scenario": "impulse_ought",
+    "category": "agenda",
+    "input": "我只是不想去班，干脆辞了算了。",
+    "expected": {
+      "rational": false,
+      "guardian": false,
+      "self": null
+    }
+  },
+  {
+    "id": "rb02-35",
+    "scenario": "impulse_ought",
+    "category": "agenda",
+    "input": "请评估因一天冲动而辞职。",
+    "expected": {
+      "rational": false,
+      "guardian": false,
+      "self": null
+    }
+  },
+  {
+    "id": "rb02-36",
+    "scenario": "social_pressure_attend",
+    "category": "agenda",
+    "input": "我不想去聚餐，但怕别人失望，还是去吧？",
+    "expected": {
+      "rational": false,
+      "guardian": true,
+      "self": false
+    }
+  },
+  {
+    "id": "rb02-37",
+    "scenario": "social_pressure_attend",
+    "category": "agenda",
+    "input": "我真正想独处，却准备为了合群参加活动。",
+    "expected": {
+      "rational": false,
+      "guardian": true,
+      "self": false
+    }
+  },
+  {
+    "id": "rb02-38",
+    "scenario": "social_pressure_attend",
+    "category": "agenda",
+    "input": "我不想赴约，只怕被说不合群，我应该去吗？",
+    "expected": {
+      "rational": false,
+      "guardian": true,
+      "self": false
+    }
+  },
+  {
+    "id": "rb02-39",
+    "scenario": "social_pressure_attend",
+    "category": "agenda",
+    "input": "我想拒绝，但为了不让同事不高兴还是参加。",
+    "expected": {
+      "rational": false,
+      "guardian": true,
+      "self": false
+    }
+  },
+  {
+    "id": "rb02-40",
+    "scenario": "social_pressure_attend",
+    "category": "agenda",
+    "input": "不要把社交压力当成用户愿望：用户不想去却选择赴约。",
+    "expected": {
+      "rational": false,
+      "guardian": true,
+      "self": false
+    }
+  },
+  {
+    "id": "rb02-41",
+    "scenario": "social_decline",
+    "category": "agenda",
+    "input": "我想独处，所以今晚拒绝邀约。",
+    "expected": {
+      "rational": true,
+      "guardian": true,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-42",
+    "scenario": "social_decline",
+    "category": "agenda",
+    "input": "我需要休息，决定不参加这次聚餐。",
+    "expected": {
+      "rational": true,
+      "guardian": true,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-43",
+    "scenario": "social_decline",
+    "category": "agenda",
+    "input": "今晚我不想社交，想礼貌拒绝。",
+    "expected": {
+      "rational": true,
+      "guardian": true,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-44",
+    "scenario": "social_decline",
+    "category": "agenda",
+    "input": "我想一个人待着，可以推掉朋友的邀请吗？",
+    "expected": {
+      "rational": true,
+      "guardian": true,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-45",
+    "scenario": "social_decline",
+    "category": "agenda",
+    "input": "请判断为了独处而拒绝一次普通邀约。",
+    "expected": {
+      "rational": true,
+      "guardian": true,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-46",
+    "scenario": "overtime_boundary",
+    "category": "agenda",
+    "input": "我决定以后不再接受临时加班。",
+    "expected": {
+      "rational": null,
+      "guardian": true,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-47",
+    "scenario": "overtime_boundary",
+    "category": "agenda",
+    "input": "为了保护生活边界，我想拒绝临时加班。",
+    "expected": {
+      "rational": null,
+      "guardian": true,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-48",
+    "scenario": "overtime_boundary",
+    "category": "agenda",
+    "input": "我不想让工作侵占休息时间，决定不接临时任务。",
+    "expected": {
+      "rational": null,
+      "guardian": true,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-49",
+    "scenario": "overtime_boundary",
+    "category": "agenda",
+    "input": "以后临时加班我都提前说不。",
+    "expected": {
+      "rational": null,
+      "guardian": true,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-50",
+    "scenario": "overtime_boundary",
+    "category": "agenda",
+    "input": "请判断这个个人边界：不再接受临时加班。",
+    "expected": {
+      "rational": null,
+      "guardian": true,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-51",
+    "scenario": "low_risk_choice",
+    "category": "agenda",
+    "input": "预算充足，我想买一副喜欢的耳机。",
+    "expected": {
+      "rational": true,
+      "guardian": true,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-52",
+    "scenario": "low_risk_choice",
+    "category": "agenda",
+    "input": "这笔普通消费不会影响生活，我想买它。",
+    "expected": {
+      "rational": true,
+      "guardian": true,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-53",
+    "scenario": "low_risk_choice",
+    "category": "agenda",
+    "input": "我看中这本书很久了，钱也够，想买。",
+    "expected": {
+      "rational": true,
+      "guardian": true,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-54",
+    "scenario": "low_risk_choice",
+    "category": "agenda",
+    "input": "我想报名一个负担得起的兴趣课程。",
+    "expected": {
+      "rational": true,
+      "guardian": true,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-55",
+    "scenario": "low_risk_choice",
+    "category": "agenda",
+    "input": "没有安全或财务压力，我想做这个低风险选择。",
+    "expected": {
+      "rational": true,
+      "guardian": true,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-56",
+    "scenario": "relationship_harm",
+    "category": "agenda",
+    "input": "对方长期伤害我，我想结束这段关系。",
+    "expected": {
+      "rational": true,
+      "guardian": true,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-57",
+    "scenario": "relationship_harm",
+    "category": "agenda",
+    "input": "因为持续被伤害，我决定断开联系。",
+    "expected": {
+      "rational": true,
+      "guardian": true,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-58",
+    "scenario": "relationship_harm",
+    "category": "agenda",
+    "input": "这段关系一直让我受伤，我想离开。",
+    "expected": {
+      "rational": true,
+      "guardian": true,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-59",
+    "scenario": "relationship_harm",
+    "category": "agenda",
+    "input": "对方反复伤害我，我应该结束关系吗？",
+    "expected": {
+      "rational": true,
+      "guardian": true,
+      "self": true
+    }
+  },
+  {
+    "id": "rb02-60",
+    "scenario": "relationship_harm",
+    "category": "agenda",
+    "input": "请判断在长期伤害背景下保护自己、结束关系。",
+    "expected": {
+      "rational": true,
+      "guardian": true,
+      "self": true
+    }
+  }
+]

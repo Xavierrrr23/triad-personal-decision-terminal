@@ -1,0 +1,14 @@
+[
+  {"id":"r01","category":"agenda","input":"我今天很累，想请一天假。","expected":{"rational":true,"guardian":true,"self":true}},
+  {"id":"r02","category":"agenda","input":"预算够，我喜欢这副耳机很久了，应该买吗？","expected":{"rational":true,"guardian":true,"self":true}},
+  {"id":"r03","category":"agenda","input":"买完这副耳机就不够交房租了，但我很喜欢，应该买吗？","expected":{"rational":false,"guardian":false,"self":true}},
+  {"id":"r04","category":"agenda","input":"我想辞职，因为已经连续加班三个月。","expected":{"rational":false,"guardian":true,"self":true}},
+  {"id":"r05","category":"agenda","input":"我想辞职，因为我只是今天不想上班。","expected":{"rational":false,"guardian":false,"self":true}},
+  {"id":"r06","category":"agenda","input":"我很想独处，只怕朋友不高兴，今晚应该拒绝邀约吗？","expected":{"rational":true,"guardian":true,"self":true}},
+  {"id":"r07","category":"agenda","input":"我不想参加聚餐，只怕同事说我不合群，我应该去吗？","expected":{"rational":false,"guardian":true,"self":false}},
+  {"id":"r08","category":"agenda","input":"我想打耳洞。","expected":{"rational":false,"guardian":false,"self":true}},
+  {"id":"r09","category":"agenda","input":"我决定以后不再答应临时加班。","expected":{"rational":true,"guardian":true,"self":true}},
+  {"id":"r10","category":"agenda","input":"我想暂时离开社交一段时间。","expected":{"rational":true,"guardian":true,"self":true}},
+  {"id":"r11","category":"agenda","input":"我想把生活放在工作前面。","expected":{"rational":true,"guardian":true,"self":true}},
+  {"id":"r12","category":"agenda","input":"我今晚可以吃炸鸡吗？","expected":{"rational":true,"guardian":true,"self":true}}
+]
