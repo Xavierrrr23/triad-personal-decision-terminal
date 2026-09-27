@@ -10,7 +10,7 @@ graph LR
   C --> E[data/question-history.txt]
 ```
 
-每次提交先由 Node 服务调用一次 Jev 做入口分类。只有 `agenda` 会在本地提取 `proposal`、`context` 和 `proposalMode`，然后并行调用理性、守护、自我三个独立判断单元；最终票数由 Node 本地计算，至少两票是才通过。`emotion`、`multiple`、`fact`、`self_worth`、`crisis`、`violence` 和 `unclear` 只返回入口状态，不会继续调用角色。`decision.mjs` 与 `roles.json` 按文件修改时间热重载，更新规则后无需重启 Node。
+每次提交先由 Node 服务调用一次 Jev 做入口属性和活动场景分类。这个请求同时包含 entry、轻量 activity、安全情境和决策画像问题；它不依赖具体地点或动作词表。Node 根据入口属性合成 agenda、emotion、multiple、fact、self_worth、crisis、violence 或 unclear，区分用户本人和他人主体，并把可逆性、财务影响、身体风险和现实必要性画像传给三个角色。需要及时就医但不是自伤、他伤或迫切危险的输入仍可进入议案流程；安全情境升级时直接返回照护状态。只有 agenda 会在本地提取 proposal、context 和 proposalMode，并附带结构化本地时间。随后理性、守护、自我三个独立判断单元并行调用；对“深夜 + 非紧急户外或出行”的高确定性组合，Node 会在最终计票前把理性和守护固定为否。最终票数由 Node 本地计算，至少两票是才通过。入口属性缺失时会退回旧的 entry Choice，避免单次模型响应异常阻断决策。decision.mjs 与 roles.json 按文件修改时间热重载，更新规则后无需重启 Node。
 
 ## 前提条件(先做,缺一不可)
 

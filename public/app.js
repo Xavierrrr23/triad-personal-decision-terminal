@@ -8,7 +8,7 @@ const connectionQuota=$('#connection-quota');
 const privateKeyForm=$('#private-key-form'), privateKeyInput=$('#private-key'), privateKeyMessage=$('#private-key-message');
 const privateKeyRemove=$('#private-key-remove'), dialogState=$('#terminal-dialog-state');
 const units=[...document.querySelectorAll('.unit')];
-const examples=['今天很不开心，我想吃炸鸡，可以吗？','我今晚想一个人待着，但又怕朋友不高兴，应该赴约吗？','我想学画画，周末去上一节体验课，可以吗？','我想周末通宵打完这个游戏。','我想把年终奖拿去投资基金。','周末我想去爬山，又想在家睡觉。','他昨天没回我消息，是不是生我气了？','好累，感觉一直在为别人活。','算了，就这样吧。'];
+const examples=['今天很不开心，我想吃炸鸡，可以吗？','我今晚想一个人待着，但又怕朋友不高兴，应该赴约吗？','我想学画画，周末去上一节体验课，可以吗？','我想周末通宵打完这个游戏。','我想把年终奖拿去投资基金。','周末我想去爬山，但是又担心我没法爬完全程，我还去吗？','他威胁我，但我今晚要不要去见他。','结婚要拿出大部分积蓄，我还结吗'];
 let exampleIndex=0,busy=false,completed=false,booting=true,publicReady=false,publicDailyLimit=0,publicRemaining=null,exampleLoaded=false;
 let privateKey=sessionStorage.getItem('triad-private-key')||'';
 let historySession=sessionStorage.getItem('triad-history-session')||'';

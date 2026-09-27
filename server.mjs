@@ -19,7 +19,7 @@ async function fresh() {
   if (dm !== decisionMtime) { decisionMtime = dm; decision = await import(`${decisionPath}?t=${dm}`); }
   const rm = statSync(rolesPath).mtimeMs;
   if (rm !== rolesMtime) { rolesMtime = rm; roles = JSON.parse(readFileSync(rolesPath, 'utf8')); }
-  return { interpret: decision.interpret, screening: decision.screening, resolveProposal: decision.resolveProposal, roles };
+  return { interpret: decision.interpret, screening: decision.screening, deriveEntryCategory: decision.deriveEntryCategory, proposalClarityGuard: decision.proposalClarityGuard, explicitMultipleChoice: decision.explicitMultipleChoice, explicitPersonalActionQuestion: decision.explicitPersonalActionQuestion, explicitPersonalActionStatement: decision.explicitPersonalActionStatement, pronounOnlyFragment: decision.pronounOnlyFragment, explicitFactQuestion: decision.explicitFactQuestion, bareWithdrawalEmotion: decision.bareWithdrawalEmotion, decisionProfile: decision.decisionProfile, profileGuard: decision.profileGuard, pressureGuard: decision.pressureGuard, temporalContext: decision.temporalContext, temporalGuard: decision.temporalGuard, resolveProposal: decision.resolveProposal, roles };
 }
 // 组装角色问题:common.preamble 注入到各角色指令前;preamble:"own" 的角色自带完整开场白。
 function buildQuestions(roles) {
@@ -34,13 +34,11 @@ function buildQuestions(roles) {
   return out;
 }
 // 提交议案时附加的本地时间背景,供角色评估现实得失与安全风险。
-const WEEK = ['周日','周一','周二','周三','周四','周五','周六'];
 function timeContext() {
-  const d = new Date();
-  const h = d.getHours();
-  const period = h < 5 ? '深夜' : h < 12 ? '上午' : h < 18 ? '下午' : h < 23 ? '晚上' : '深夜';
+  const temporal = decision.temporalContext();
   const pad = n => String(n).padStart(2, '0');
-  return `系统补充(由终端实时提供,非用户文本):提交议案时的本地时间为 ${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 ${WEEK[d.getDay()]} ${pad(h)}:${pad(d.getMinutes())}(${period})。评估现实得失与安全风险时可把它作为背景;它不改变表决对象本身。`;
+  const text = `系统补充(由终端实时提供,非用户文本):提交议案时的本地时间为 ${temporal.localDate} ${temporal.weekday} ${pad(temporal.hour)}:${pad(temporal.minute)}(${temporal.period})。结构化时间状态为 ${JSON.stringify(temporal)}。评估现实得失与安全风险时可把它作为背景;它不改变表决对象本身。`;
+  return { temporal, text };
 }
 function envFile(path) {
   try { return Object.fromEntries(readFileSync(path, 'utf8').split(/\r?\n/).filter(l => /^[A-Z_]+=/.test(l)).map(l => { const i=l.indexOf('='); return [l.slice(0,i), l.slice(i+1).trim().replace(/^(['"])(.*)\1$/, '$2')]; })); } catch { return {}; }
@@ -174,21 +172,61 @@ const server = http.createServer(async (req,res) => {
         if (!upstream.ok) return { error: upstream.status };
         return { data: await upstream.json() };
       };
+      const currentTime = timeContext();
       const screeningResult = await callJev({
         model:hotRoles.model,
-        state:`${question}\n${timeContext()}`,
-        questions:{ entry:hotScreening.entry },
+        state:`${question}\n${currentTime.text}`,
+        questions:{ entry:hotScreening.entry, activity:hotScreening.activity, ...hotScreening.semantic },
       });
       if (screeningResult.error) return upstreamError(screeningResult.error);
-      const category = screeningResult.data?.answers?.entry?.choice;
+      const screeningAnswers = screeningResult.data?.answers || {};
+      const { deriveEntryCategory: resolveEntryCategory, proposalClarityGuard: resolveProposalClarity, explicitMultipleChoice: isExplicitMultipleChoice, explicitPersonalActionQuestion: isExplicitPersonalActionQuestion, explicitPersonalActionStatement: isExplicitPersonalActionStatement, pronounOnlyFragment: isPronounOnlyFragment, explicitFactQuestion: isExplicitFactQuestion, bareWithdrawalEmotion: isBareWithdrawalEmotion } = await fresh();
+      const semanticCategory = resolveEntryCategory(screeningAnswers);
+      const structuralMultiple = isExplicitMultipleChoice(question);
+      const structuralAction = isExplicitPersonalActionQuestion(question);
+      const structuralStatement = isExplicitPersonalActionStatement(question);
+      const structuralFact = isExplicitFactQuestion(question);
+      const structuralEmotion = isBareWithdrawalEmotion(question);
+      const legacyCategory = screeningAnswers.entry?.choice;
+      const baseCategory = semanticCategory || legacyCategory;
+      const structuralCategory = structuralMultiple && ['agenda','emotion','multiple','unclear'].includes(baseCategory)
+        ? 'multiple'
+        : (structuralAction || structuralStatement) && ['fact','emotion','multiple','unclear'].includes(baseCategory)
+          ? 'agenda'
+          : baseCategory;
+      // 结构兜底已经确认这是用户下一步行动问句时,不再让同一轮 Jev 的
+      // proposalClarity=missing 把明确行动重新降回 unclear。
+      const category = isPronounOnlyFragment(question)
+        ? 'unclear'
+        : structuralFact && ['agenda','emotion','multiple','unclear'].includes(baseCategory)
+        ? 'fact'
+        : structuralEmotion && ['agenda','emotion','unclear'].includes(baseCategory)
+        ? 'emotion'
+        : structuralAction || structuralStatement
+        ? structuralCategory
+        : resolveProposalClarity(structuralCategory, screeningAnswers.proposalClarity?.choice);
+      const entryAnswer = semanticCategory || category !== legacyCategory
+        ? { ...(screeningAnswers.entry || {}), type: 'choice', choice: category }
+        : screeningAnswers.entry;
       if (category !== 'agenda') {
         const { interpret } = await fresh();
-        const entryResponse={answers:{entry:screeningResult.data.answers.entry,rational:{noul:0},guardian:{noul:0},self:{noul:0}}};
+        const entryResponse={answers:{entry:entryAnswer,rational:{noul:0},guardian:{noul:0},self:{noul:0}}};
         return send(200,{...interpret(entryResponse),publicDailyLimit:quota?.limit,publicRemaining:quota?.remaining});
       }
-      const { resolveProposal } = await fresh();
-      const proposal=resolveProposal(question);
-      const roleState={ original:question, proposal:proposal.object, context:proposal.context, proposalMode:proposal.mode, submittedAt:timeContext() };
+      const { resolveProposal, decisionProfile: resolveDecisionProfile, profileGuard: resolveProfileGuard, pressureGuard: resolvePressureGuard, temporalGuard: resolveTemporalGuard } = await fresh();
+      const localProposal=resolveProposal(question);
+      const semanticMode=screeningAnswers.proposalMode?.choice;
+      const proposal=semanticMode && ['explicit','implied','unclear'].includes(semanticMode)
+        ? { ...localProposal, mode: semanticMode }
+        : localProposal;
+      const activityContext=screeningAnswers.activity?.choice;
+      const safetyContext=screeningAnswers.safetyContext?.choice;
+      const pressureContext=screeningAnswers.pressureContext?.choice;
+      const profile=resolveDecisionProfile(screeningAnswers);
+      const temporalGuardResult=resolveTemporalGuard({ original:question, proposal:proposal.object, context:proposal.context }, currentTime.temporal, activityContext);
+      const profileGuardResult=resolveProfileGuard(profile);
+      const pressureGuardResult=resolvePressureGuard(pressureContext, safetyContext);
+      const roleState={ original:question, proposal:proposal.object, context:proposal.context, proposalMode:proposal.mode, temporal:currentTime.temporal, activityContext, safetyContext, pressureContext, decisionProfile:profile, submittedAt:currentTime.text };
       const roleQuestions=buildQuestions(hotRoles);
       // MAGI 式独立投票:每个单元单独请求,避免同一响应里的角色互相锚定。
       const roleResults=await Promise.all(Object.entries(roleQuestions).map(async ([id, questionConfig]) => [id, await callJev({
@@ -199,8 +237,17 @@ const server = http.createServer(async (req,res) => {
       const failedRole=roleResults.find(([, result]) => result.error);
       if (failedRole) return upstreamError(failedRole[1].error);
       const roleAnswers=Object.fromEntries(roleResults.map(([id, result]) => [id, result.data?.answers?.[id]]));
+      for (const guard of [temporalGuardResult, profileGuardResult, pressureGuardResult]) {
+        if (!guard) continue;
+        for (const id of guard.forcedNo || []) {
+          if (roleAnswers[id]) roleAnswers[id] = { ...roleAnswers[id], noul: 0 };
+        }
+        for (const id of guard.forcedYes || []) {
+          if (roleAnswers[id]) roleAnswers[id] = { ...roleAnswers[id], noul: 1 };
+        }
+      }
       const { interpret } = await fresh();
-      return send(200,{...interpret({answers:{...roleAnswers,entry:screeningResult.data.answers.entry}}),publicDailyLimit:quota?.limit,publicRemaining:quota?.remaining});
+      return send(200,{...interpret({answers:{...roleAnswers,entry:entryAnswer}}),publicDailyLimit:quota?.limit,publicRemaining:quota?.remaining});
     } finally { concurrent--; }
   } catch (error) {
     console.error('决议请求失败:', error?.name || 'Error', error?.message || error);
