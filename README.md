@@ -2,11 +2,11 @@
 
 超高智能个人即时决策系统。手机优先的私人终端网页，接入真实 Jev，规则与角色配置 v0.74。
 
-当前规则冻结基线为 [v0.74](/Users/xavier/Desktop/超高智能个人即时决策系统/FREEZE-v0.74.md)，历史验收基线见 [v0.57](/Users/xavier/Desktop/超高智能个人即时决策系统/FREEZE-v0.57.md)。v0.74 在 v0.73 的短句情绪与事实边界基础上，补强了“我可以……”行动问句和“想 A 也想 B”多选结构。测试记录见 [SHORT-INPUT-REPORT-v0.74.md](/Users/xavier/Desktop/超高智能个人即时决策系统/SHORT-INPUT-REPORT-v0.74.md)。
+当前规则冻结基线为 [v0.74](docs/acceptance/FREEZE-v0.74.md)，历史验收基线见 [v0.57](docs/acceptance/FREEZE-v0.57.md)。v0.74 在 v0.73 的短句情绪与事实边界基础上，补强了“我可以……”行动问句和“想 A 也想 B”多选结构。测试记录见 [SHORT-INPUT-REPORT-v0.74.md](docs/acceptance/SHORT-INPUT-REPORT-v0.74.md)。
 
-v0.75 端到端验收轮已通过：60 条混合议案各提交 3 次，共 180 次真实 Jev 联动请求；入口路线、三角色票型和最终多数裁决均无不稳定，记录见 [E2E-ACCEPTANCE-v0.75.md](/Users/xavier/Desktop/超高智能个人即时决策系统/E2E-ACCEPTANCE-v0.75.md)。v0.75 是验收轮编号，角色配置仍为 v0.74。
+v0.75 端到端验收轮已通过：60 条混合议案各提交 3 次，共 180 次真实 Jev 联动请求；入口路线、三角色票型和最终多数裁决均无不稳定，记录见 [E2E-ACCEPTANCE-v0.75.md](docs/acceptance/E2E-ACCEPTANCE-v0.75.md)。v0.75 是验收轮编号，角色配置仍为 v0.74。
 
-网页端验收也已通过：正常议案、情绪输入、多选输入、议案记录和 CRT 开关均完成真实浏览器操作；第二单元后台角色为 guardian，界面有意使用主题化别名“存续 / CONTINUITY”，记录见 [UI-ACCEPTANCE-v0.75.md](/Users/xavier/Desktop/超高智能个人即时决策系统/UI-ACCEPTANCE-v0.75.md)。
+网页端验收也已通过：正常议案、情绪输入、多选输入、议案记录和 CRT 开关均完成真实浏览器操作；第二单元后台角色为 guardian，界面有意使用主题化别名“存续 / CONTINUITY”，记录见 [UI-ACCEPTANCE-v0.75.md](docs/acceptance/UI-ACCEPTANCE-v0.75.md)。
 
 ## 启动
 

@@ -22,11 +22,11 @@
 - `node --check server.mjs`：通过。
 - `git diff --check`：通过。
 - `/api/health`：`configured: true`，`version: 0.74`。
-- [E2E-ACCEPTANCE-v0.75.md](/Users/xavier/Desktop/超高智能个人即时决策系统/E2E-ACCEPTANCE-v0.75.md)：60 条 × 3 次，共 180 次真实 Jev 请求，第二次完整复跑无错误、路线和票型均稳定。
-- [UI-ACCEPTANCE-v0.75.md](/Users/xavier/Desktop/超高智能个人即时决策系统/UI-ACCEPTANCE-v0.75.md)：正常议案、情绪、多选、历史记录和 CRT 开关已完成浏览器验收。
+- [E2E-ACCEPTANCE-v0.75.md](E2E-ACCEPTANCE-v0.75.md)：60 条 × 3 次，共 180 次真实 Jev 请求，第二次完整复跑无错误、路线和票型均稳定。
+- [UI-ACCEPTANCE-v0.75.md](UI-ACCEPTANCE-v0.75.md)：正常议案、情绪、多选、历史记录和 CRT 开关已完成浏览器验收。
 - 视口检查：390×844、768×1024、1440×900 均无横向或纵向溢出。
-- [ui-v074-mobile-390.png](/Users/xavier/Desktop/超高智能个人即时决策系统/output/playwright/ui-v074-mobile-390.png) 和 [ui-v074-desktop-1440.png](/Users/xavier/Desktop/超高智能个人即时决策系统/output/playwright/ui-v074-desktop-1440.png)：冻结时的视觉快照。
+- `output/playwright/ui-v074-mobile-390.png` 和 `ui-v074-desktop-1440.png`：冻结时的本地视觉快照，输出目录不纳入 Git。
 
 ## 发布边界
 
-当前仍是本地原型。正式公开前需要在目标服务器上配置真实 Key、HTTPS、Nginx/PM2 或 Windows 服务，并按 [deploy/DEPLOY.md](/Users/xavier/Desktop/超高智能个人即时决策系统/deploy/DEPLOY.md) 完成部署后的健康检查。冻结不代表已经完成公网部署。
+当前仍是本地原型。正式公开前需要在目标服务器上配置真实 Key、HTTPS、Nginx/PM2 或 Windows 服务，并按 [deploy/DEPLOY.md](../../deploy/DEPLOY.md) 完成部署后的健康检查。冻结不代表已经完成公网部署。
