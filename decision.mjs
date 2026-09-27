@@ -128,7 +128,7 @@ export function profileGuard(profile) {
   return null;
 }
 
-// 外部压力属性属于守护单元的边界约束:普通社交压力不应被自我单元的“不想”替代,
+// 外部压力属性属于存续单元的边界约束:普通社交压力不应被自我单元的“不想”替代,
 // 明确的胁迫或报复则不能被包装成普通赴约。其余情形仍交给角色独立判断。
 export function pressureGuard(pressureContext, safetyContext = 'none') {
   if (pressureContext === 'ordinary_social_pressure' && safetyContext === 'none') {
